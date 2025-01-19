@@ -1,4 +1,4 @@
-package es.Miulpgc.software.mocks.swing;
+package es.Miulpgc.software.App.swing;
 
 import es.Miulpgc.software.architecture.view.ImageDisplay;
 

@@ -1,17 +1,13 @@
-package es.Miulpgc.software.mocks;
+package es.Miulpgc.software.App;
 
 import es.Miulpgc.software.architecture.model.ImageSet;
 import es.Miulpgc.software.architecture.presenter.NextImageCommand;
 import es.Miulpgc.software.architecture.presenter.PreviousImageCommand;
-import es.Miulpgc.software.mocks.swing.SwingImageDisplay;
-import es.Miulpgc.software.mocks.swing.SwingImageLoader;
+import es.Miulpgc.software.App.swing.SwingImageLoader;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -89,7 +85,86 @@ public class MainFrame extends javax.swing.JFrame {
                 repaint();
             }
         });
+
+
+
+        this.addMouseListener(new MouseAdapter() {
+            public int startX;
+            @Override
+            public void mousePressed(MouseEvent e) {
+                startX = e.getX();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                int deltaX = e.getX() - startX;
+                if (Math.abs(deltaX) > getWidth() / 2) {
+                    boolean isBackward = deltaX > 0;
+                    changeImage(imageLabel, isBackward);
+                } else {
+                    resetImagePosition(imageLabel);
+                }
+            }
+        });
+
+        this.addMouseMotionListener(new MouseMotionAdapter() {
+            private int startX;
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                startX = e.getX();
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (startX != e.getX()) {
+                    int deltaX = e.getX() - startX;
+                    imageLabel.setLocation(deltaX, imageLabel.getY());
+                }
+            }
+        });
     }
+
+    private void changeImage(JLabel imageLabel, boolean isBackward) {
+
+        if (isBackward) {
+            PreviousImageCommand command = new PreviousImageCommand();
+            images.setCurrentImageIndex(command.execute(images));
+        } else {
+            NextImageCommand command = new NextImageCommand();
+            images.setCurrentImageIndex(command.execute(images));
+        }
+
+
+        SwingImageLoader loader = new SwingImageLoader();
+        BufferedImage newImage;
+        try {
+            newImage = loader.Load(images.getCurrentImage());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        imageLabel.setIcon(updateImage(newImage));
+        imageLabel.setLocation(0, imageLabel.getY());
+        repaint();
+    }
+
+    private void resetImagePosition(JLabel imageLabel) {
+        Timer timer = new Timer(10, null);
+        final int[] offset = {imageLabel.getX()};
+        int direction = offset[0] > 0 ? -1 : 1;
+
+        timer.addActionListener(e -> {
+            offset[0] += 10 * direction;
+            imageLabel.setLocation(offset[0], imageLabel.getY());
+
+            if (Math.abs(offset[0]) <= 10) {
+                timer.stop();
+                imageLabel.setLocation(0, imageLabel.getY());
+            }
+        });
+
+        timer.start();
+    }
+
 
     private ImageIcon updateImage(BufferedImage originalImage) {
         int width = this.getContentPane().getWidth();

@@ -1,9 +1,8 @@
-package es.Miulpgc.software.mocks.swing;
+package es.Miulpgc.software.App.swing;
 
 import es.Miulpgc.software.architecture.model.Image;
 import es.Miulpgc.software.architecture.view.ImageLoader;
 
-import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
